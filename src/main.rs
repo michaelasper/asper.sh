@@ -2,18 +2,27 @@
 #![plugin(rocket_codegen)]
 
 extern crate rocket;
+extern crate rocket_contrib;
 
-use std::io;
+#[macro_use]
+extern crate serde_derive;
+use rocket_contrib::Template;
 
-use rocket::response::NamedFile;
+#[derive(Serialize)]
+struct TemplateContext {
+    name: String,
+}
 
 #[get("/")]
-fn index() -> io::Result<NamedFile> {
-    NamedFile::open("static/index.html")
+fn index() -> Template {
+    let context = TemplateContext { name: "Michael Asper".to_string() };
+    Template::render("index", &context)
 }
 
 fn rocket() -> rocket::Rocket {
-    rocket::ignite().mount("/", routes![index])
+    rocket::ignite().mount("/", routes![index]).attach(
+        Template::fairing(),
+    )
 }
 
 fn main() {
